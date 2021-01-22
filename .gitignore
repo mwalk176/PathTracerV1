@@ -3,7 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-output/
+*.ppm
+*.png
 
 # User-specific files
 *.rsuser
