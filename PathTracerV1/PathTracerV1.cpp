@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
 		/*THIS IS THE MAIN SCENE, BUILD THE SCENE YOU WANT BY MODIFYING THESE VALUES*/
 
 		Camera camera;
-		camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
-		//camera.pos.setEach(0, 0, -15);
+		//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
+		camera.pos.setEach(0, 0, -200);
 
 		std::vector<Sphere> lights;
 
@@ -89,22 +89,36 @@ int main(int argc, char* argv[]) {
 		lights.push_back(Sphere(0, 5000, 0, true));
 		*/
 		//lights.push_back(Sphere(10, 5, 0, 1.0, true));
-		lights.push_back(Sphere(0, 0, 0, 10000, true, 1, 1, 1));
+		//lights.push_back(Sphere(0, 0, 0, 10000, true, 1, 1, 1));
+		lights.push_back(Sphere(0, 749.6, -50, 700, true, 10, 10, 10));
+		//lights.push_back(Sphere(0, 0, 0, 60, true, 1, 1, 1));
 
 		std::vector<Sphere> scene;
 
 		//scene.push_back(Sphere(0, 0, 0, 0.18, 0.18, 0.18, 3));
 		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));
 		
-		scene.push_back(Sphere(0, 0, 0, 0.7, 1, 1, 3));
+		//scene.push_back(Sphere(0, 0, 0, 0.7, 1, 1, 3));
 
-		scene.push_back(Sphere(4, -2.75, -2, 0.2, 0.9, 0.5, 1));
-		scene.push_back(Sphere(-5, -1.5, 1.5, 1, 0.4, 0.4, 2));
-		scene.push_back(Sphere(-3, -2.75, -2, 1, 1, 0, 1));
+		//scene.push_back(Sphere(4, -2.75, -2, 0.2, 0.9, 0.5, 1));
+		//scene.push_back(Sphere(-5, -1.5, 1.5, 1, 0.4, 0.4, 2));
+		//scene.push_back(Sphere(-3, -2.75, -2, 1, 1, 0, 1));
 
 
-		scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));
+		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));
 		//scene.push_back(Sphere(0, 10010, 0, 0.9, 0.9, 0.9, 10000));
+
+		scene.push_back(Sphere(-100060, 50, 0,  0.75, 0.25, 0.25, 100000));			//left wall
+		scene.push_back(Sphere(100060,  50, 0,  0.25, 0.25, 0.75, 100000));			//right wall
+		scene.push_back(Sphere(0,		0, 100000, 0.75, 0.75, 0.75, 100000));		//back wall
+		//scene.push_back(Sphere(50, 40.8, -1e5+170, 0.0, 0.0, 0.0, 1e5));			//front wall
+		scene.push_back(Sphere(0, -100050, 0,  0.75, 0.75, 0.75, 100000));			//ground
+		scene.push_back(Sphere(0, 100050, 0, 0.75, 0.75, 0.75, 100000));			//ceiling
+
+		scene.push_back(Sphere(25, -35, -70, 0.75, 0.75, 0.75, 15));				//right sphere
+		scene.push_back(Sphere(-30, -30, -40, 0.75, 0.75, 0.75, 20));				//right sphere
+
+
 		
 		/*END MAIN SCENE*/
 
@@ -199,20 +213,28 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 	depth += 1;
 	
 	float closestPoint = INFINITY;
+	float closestPoint2 = INFINITY;
 
 	//check for intersection with object
 	int closestObject = getClosestObject(rayOrigin, rayDirection, scene, closestPoint);
+	int closestLight = getClosestObject(rayOrigin, rayDirection, lights, closestPoint2);
 	if (closestObject == -1) {
-		float closestPoint2 = INFINITY;
 		//check for intersection with light
-		int closestLight = getClosestObject(rayOrigin, rayDirection, lights, closestPoint2);
 		if (closestLight == -1) return Vec3f(0); //no object OR light was hit
 		Sphere light = lights.at(closestLight);
 		return Vec3f(light.emissionColor.x, light.emissionColor.y, light.emissionColor.z); //color pixel with light
 	}
+
 	Sphere currentObject = scene.at(closestObject);
 	Vec3f objectColor = currentObject.color;
 
+	//check to see if there is a light also in the path of the ray, and if it's closer than the object
+	if (closestLight != -1) {
+		if (closestPoint2 < closestPoint) {
+			Sphere light = lights.at(closestLight);
+			return Vec3f(light.emissionColor.x, light.emissionColor.y, light.emissionColor.z); //color pixel with light
+		}
+	}
 	//calculate spot where it intersected and the normal
 	Vec3f intersectionPoint = rayOrigin + rayDirection * closestPoint;
 	Vec3f normal = intersectionPoint - currentObject.pos;
@@ -306,9 +328,9 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 	//lightValue.clamp();
 	//objectColor = objectColor * lightValue;
 	Vec3f totalLight = (indirectDiffuse + lightValue);
-	totalLight.clamp();
-	objectColor = objectColor * totalLight;
-	//objectColor = objectColor * lightValue;
+	//totalLight.clamp();
+	//objectColor = objectColor * totalLight;
+	objectColor = objectColor * indirectDiffuse;
 
 	return objectColor;
 
