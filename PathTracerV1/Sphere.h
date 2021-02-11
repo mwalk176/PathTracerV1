@@ -6,27 +6,29 @@
 struct Sphere {
 	Vec3f pos = Vec3f();
 	Vec3f color = Vec3f(1);
-	Vec3f emissionColor = Vec3f(1);
+	Vec3f emissionColor = Vec3f(0);
 	float radius = 1;
 	float refl = 0;
 	float refract = 0;
 	float IOR = 1;
-	bool light = false;
+	int type = 0; //0 diffuse, 1 pure specular, 2 glass
+	//bool light = false;
 
 	Sphere() : pos(0), radius(1), color(1) {}
 	Sphere(float num) : pos(num), radius(num), color(1) {}
 	Sphere(float xPos, float yPos, float zPos, float r) : pos(xPos, yPos, zPos), radius(r) {}
-	Sphere(float xPos, float yPos, float zPos, bool isLight) : pos(xPos, yPos, zPos), light(isLight) {}
-	Sphere(float xPos, float yPos, float zPos, float r, bool isLight) 
-		: pos(xPos, yPos, zPos), radius(r), light(isLight) {}
-	Sphere(float xPos, float yPos, float zPos, float r, bool isLight, float eR, float eG, float eB) 
-		: pos(xPos, yPos, zPos), radius(r), light(isLight), emissionColor(eR, eG, eB) {}
+	//Sphere(float xPos, float yPos, float zPos, bool isLight) : pos(xPos, yPos, zPos), light(isLight) {}
+	//Sphere(float xPos, float yPos, float zPos, float r, bool isLight) 
+	//	: pos(xPos, yPos, zPos), radius(r), light(isLight) {}
+	//Sphere(float xPos, float yPos, float zPos, float r, bool isLight, float eR, float eG, float eB) 
+	//	: pos(xPos, yPos, zPos), radius(r), light(isLight), emissionColor(eR, eG, eB) {}
 	Sphere(float xPos, float yPos, float zPos, float cR, float cG, float cB, float r)
 		: pos(xPos, yPos, zPos), color(cR, cG, cB), radius(r) {}
 	Sphere(float xPos, float yPos, float zPos, float cR, float cG, float cB, float r,
 		float inRefl, float inRefract, float inIOR)
 		: pos(xPos, yPos, zPos), color(cR, cG, cB), radius(r), refl(inRefl), refract(inRefract), IOR(inIOR) {}
-	//Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, )
+	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType) 
+		: pos(inPos), color(inColor), emissionColor(inEmission), radius(r), type(inType) {}
 
 
 	bool intersect(Vec3f rayOrigin, Vec3f rayDirection, float& p0, float& p1) {
