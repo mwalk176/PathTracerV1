@@ -5,6 +5,11 @@
 
 *.ppm
 *.png
+*.tif
+*.nknc
+*.autosave
+*.mov
+output/*
 
 # User-specific files
 *.rsuser
