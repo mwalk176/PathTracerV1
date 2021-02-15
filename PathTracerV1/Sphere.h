@@ -10,7 +10,7 @@ struct Sphere {
 	float radius = 1;
 	float refl = 0;
 	float refract = 0;
-	float IOR = 1;
+	float IOR = 1.5;
 	int type = 0; //0 diffuse, 1 pure specular, 2 glass
 	//bool light = false;
 

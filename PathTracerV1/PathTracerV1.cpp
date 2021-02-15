@@ -6,12 +6,15 @@
 //			By Matthew Walker			//
 //				12/22/2020				//
 //										//
+//		inspired by projects such as	//
+//		scratchapixel.com and smallpt	//
+//		thanks for the guidance!		//
 //										//
 //**************************************//
 
 
 #define _USE_MATH_DEFINES
-#define MAX_DEPTH 3
+#define MAX_DEPTH 10
 #define GAMMA 2.2
 #define FOV 50
 
@@ -31,7 +34,7 @@
 
 
 Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
-	std::vector<Sphere>& scene, int& depth);
+	std::vector<Sphere>& scene, int& depth, bool calculateEmission);
 Vec3f calculateRayDirection(int columns, int rows, int x, int y, float sX, float sY, Camera camera);
 std::ofstream writeToPPMFile(Vec3f** image, int width, int height, int maximumColorValue, int frameNum);
 int getClosestObject(Vec3f rayOrigin, Vec3f rayDirection, std::vector<Sphere>& scene, float& closestPoint);
@@ -71,14 +74,15 @@ int main(int argc, char* argv[]) {
 	for (int frameNum = startFrame; frameNum <= endFrame; frameNum++) {
 		float currentTime = (float)frameNum / 24.0;
 
-
+		std::cout << "Rendering Frame " << frameNum << " of " << endFrame << std::endl;
 
 
 		/*THIS IS THE MAIN SCENE, BUILD THE SCENE YOU WANT BY MODIFYING THESE VALUES*/
 
 		Camera camera;
-		camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
-		//camera.pos.setEach(0, 0, -200);
+		
+		
+		
 
 		std::vector<Sphere> lights;
 
@@ -98,22 +102,42 @@ int main(int argc, char* argv[]) {
 		//scene.push_back(Sphere(0, 0, 0, 0.18, 0.18, 0.18, 3));
 		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));
 		
-		//4 spheres and ground/dome light scene
-		scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
-		scene.push_back(Sphere(0, 0, 0, 0.7, 1, 1, 3));						//blue sphere
-		//scene.push_back(Sphere(4, -2.75, -2, 0.2, 0.9, 0.5, 1));			//green sphere
-		scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 1));
-		scene.push_back(Sphere(-5, -1.5, 1.5, 1, 0.4, 0.4, 2));				//red sphere
-		scene.push_back(Sphere(-3, -2.75, -2, 1, 1, 0, 1));					//yellow sphere
-		scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
-		
+		////4 spheres and ground/dome light scene
+		//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
+		//scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
+		////scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(40), 2, 0));	//sphere light
+		//scene.push_back(Sphere(0, 0, 0, 0.7, 1, 1, 3));						//blue sphere
+		////scene.push_back(Sphere(4, -2.75, -2, 0.2, 0.9, 0.5, 1));			//green sphere
+		//scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 1)); //metal sphere
+		////scene.push_back(Sphere(Vec3f(0,-1,0), Vec3f(1), Vec3f(0), 3, 2)); //glass sphere
+		////scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
+		//scene.push_back(Sphere(-6, -1.5, 1.5, 1, 0.4, 0.4, 2));				//red sphere
+		//scene.push_back(Sphere(Vec3f(-3, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
+		////scene.push_back(Sphere(-3, -2.75, -2, 1, 1, 0, 1));					//yellow sphere
+		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
+
+
+		////spheres in a line
+		//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
+		//scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.4), 10000, 0));	//dome light
+		//scene.push_back(Sphere(Vec3f(-6, -2, 0), Vec3f(1), Vec3f(0), 2, 1)); //metal sphere
+		//scene.push_back(Sphere(Vec3f(-2, -2, 0), Vec3f(1), Vec3f(0), 2, 2)); //glass sphere
+		//scene.push_back(Sphere(Vec3f(2, -2, 0), Vec3f(1), Vec3f(1), 2, 0)); //light sphere
+		//scene.push_back(Sphere(Vec3f(6, -2, 0), Vec3f(0.2, 0.8, 1.0), Vec3f(0), 2, 0)); //diffuse sphere
+		//scene.push_back(Sphere(0, -10004, 0, 0.8, 0.8, 0.8, 10000));		//grey ground
+		////scene.push_back(Sphere(0, 0, 10010, 0.8, 0.8, 0.8, 10000));		//grey ground
+
+
+
+
 		//scene.push_back(Sphere(0, 10010, 0, 0.9, 0.9, 0.9, 10000));
 
-		/*
+		
 		//cornell box scene
+		camera.pos.setEach(0, 0, -200 + ((frameNum - 1.0) / 24.0) * 10);
 		scene.push_back(Sphere(Vec3f(0, 749.6, -50), Vec3f(1), Vec3f(10), 700, 0));					//light
-		scene.push_back(Sphere(-100060, 50, 0,  0.75, 0.25, 0.25, 100000));							//left wall
-		scene.push_back(Sphere(100060,  50, 0,  0.25, 0.25, 0.75, 100000));							//right wall
+		scene.push_back(Sphere(-100100, 50, 0,  1.0, 0.5, 0.5, 100000));							//left wall
+		scene.push_back(Sphere(100100,  50, 0,  0.4, 0.7, 1.0, 100000));							//right wall
 		scene.push_back(Sphere(0,		0, 100000, 0.75, 0.75, 0.75, 100000));						//back wall
 		//scene.push_back(Sphere(50, 40.8, -1e5+170, 0.0, 0.0, 0.0, 1e5));							//front wall
 		scene.push_back(Sphere(0, -100050, 0,  0.75, 0.75, 0.75, 100000));							//ground
@@ -121,9 +145,10 @@ int main(int argc, char* argv[]) {
 
 		//scene.push_back(Sphere(25, -35, -70, 0.75, 0.75, 0.75, 15));								//right sphere
 		//scene.push_back(Sphere(-30, -30, -40, 0.75, 0.75, 0.75, 20));								//left sphere
-		scene.push_back(Sphere(Vec3f(25, -35, -70), Vec3f(1), Vec3f(0), 15, 1));								//right sphere
-		scene.push_back(Sphere(Vec3f(-30, -30, -40), Vec3f(1), Vec3f(0), 20, 1));								//left sphere
-		*/
+		//scene.push_back(Sphere(Vec3f(-45, -30, -55), Vec3f(1), Vec3f(0), 20, 1));					//left sphere
+		scene.push_back(Sphere(Vec3f(40, -35, -70), Vec3f(1), Vec3f(0), 15, 2));					//right sphere
+		scene.push_back(Sphere(Vec3f(0, -28, -35), Vec3f(0.5, 0.9, 1), Vec3f(0), 22, 0));
+		
 
 		
 		/*END MAIN SCENE*/
@@ -134,9 +159,41 @@ int main(int argc, char* argv[]) {
 		std::vector<std::thread> threadList;
 		unsigned int coreCount = 0;
 
+		time_t timer;
+		double startTime = time(&timer);
+		double deltaTime = -1;
+		bool calculateTime = false;
+		double averageCycleTime = 0;
+		double totalTime = 0;
+
 		//For each pixel in the image
 		for (int y = 0; y < rows; y++) {
-			std::cout << "y: " << y << std::endl;
+			
+			if (calculateTime) {
+				deltaTime = time(&timer) - startTime;
+				startTime = time(&timer);
+				averageCycleTime = averageCycleTime == 0 ? (averageCycleTime + deltaTime) : (averageCycleTime + deltaTime) / 2.0;
+				totalTime = totalTime + deltaTime;
+				calculateTime = false;
+				std::cout << "Cycle complete, current y: " << y << std::endl;
+				std::cout << "  Elapsed time: " << (int)(totalTime / 60) << " minutes, " << (int)totalTime % 60 << " seconds" << std::endl;
+				std::cout << "  Previous cycle took " << deltaTime << " seconds to complete" << std::endl;
+				std::cout << "  Average cycle time: " << averageCycleTime << " seconds" << std::endl;
+				int remainingRows = rows - y;
+				double remainingCycles = remainingRows / numCores;
+				double estimatedTime = remainingCycles * deltaTime;
+				int minutesLeft = estimatedTime / 60;
+				int secondsLeft = (int)estimatedTime % 60;
+				std::cout << "  " << remainingCycles << " cycles left" << std::endl;
+				//std::cout << estimatedTime << " seconds remaining" << std::endl;
+				std::cout << "  Estimated time remaining: " << minutesLeft << " minutes, " << secondsLeft << " seconds" << std::endl << std::endl;
+				
+				
+			}
+
+			//std::cout << "y: " << y << std::endl;
+			//renderRow(image, y, rows, columns, maxSamples, camera, scene);
+			//calculateTime = true;
 			
 			//create thread for the row
 			threadList.push_back(std::thread(renderRow, std::ref(image), y,
@@ -149,6 +206,7 @@ int main(int argc, char* argv[]) {
 					threadList.at(i).join();
 				}
 				threadList.clear();
+				calculateTime = true;
 			}
 		}
 		//Write image
@@ -162,7 +220,7 @@ int main(int argc, char* argv[]) {
 
 
 Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
-	std::vector<Sphere>& scene, int& depth) {
+	std::vector<Sphere>& scene, int& depth, bool calculateEmission) {
 
 	if (depth > MAX_DEPTH) return Vec3f(0);
 	depth += 1;
@@ -174,16 +232,33 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 	int closestObject = getClosestObject(rayOrigin, rayDirection, scene, closestPoint);
 	if (closestObject == -1) return Vec3f(0); //nothing was hit
 	Sphere currentObject = scene.at(closestObject);
-	//if (currentObject.emissionColor.calculateMagnitude() != 0) { //it's a light so just return the light color
-	//	return Vec3f(currentObject.emissionColor.x, currentObject.emissionColor.y, currentObject.emissionColor.z);
-	//}
+	if (currentObject.emissionColor.calculateMagnitude() != 0) { //it's a light so just return the light color
+		return Vec3f(currentObject.emissionColor.x, currentObject.emissionColor.y, currentObject.emissionColor.z);
+	}
 	Vec3f objectColor = currentObject.color;
+
+	float brightestColor = objectColor.x;
+	if (objectColor.y > brightestColor) brightestColor = objectColor.y;
+	if (objectColor.z > brightestColor) brightestColor = objectColor.z;
+	if (depth > 5) {
+		if ((float)rand() / RAND_MAX < brightestColor) {
+			objectColor = objectColor * (1 / brightestColor);
+		}
+		else {
+			return currentObject.emissionColor;
+		}
+	}
 	
 	//calculate spot where it intersected and the normal
 	Vec3f intersectionPoint = rayOrigin + rayDirection * closestPoint;
 	Vec3f normal = intersectionPoint - currentObject.pos;
 	normal.normalize();
-	if (normal.dot(rayDirection) >= 0) normal = normal * -1;
+	Vec3f alignedNormal = normal; //normal that is pointing out of the sphere
+	bool outsideSphere = true;
+	if (normal.dot(rayDirection) >= 0) {
+		outsideSphere = false;
+		alignedNormal = normal * -1;
+	}
 
 	float epsilon = 8e-6 * (currentObject.radius + 1.0);
 	Vec3f normalOrigin = intersectionPoint + normal * epsilon;
@@ -192,44 +267,54 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 
 	switch (currentObject.type) {
 	case 0: {//diffuse
+		//std::cout << "diffuse" << std::endl;
 		//diffuse reflections
 		//1. calculate a random ray direction in the hemisphere around the normal
 		float randomAngle = M_PI * 2 * ((float)rand() / RAND_MAX);
 		float distanceModifier = (float)rand() / RAND_MAX;
 		float distanceModifier2 = sqrt(distanceModifier);
 
-		//get a set of basis vectors to have a hemisphere around the normal of the object
+		//get a set of basis vectors to have a hemisphere around the alignedNormal of the object
 		Vec3f e1 = Vec3f(0);
-		if (fabs(normal.x) > fabs(normal.y)) { //make sure the normal is the "up" vector in the hemisphere
-			e1 = Vec3f(normal.z, 0, -normal.x) / sqrt(normal.x * normal.x + normal.z * normal.z);
+		if (fabs(alignedNormal.x) > fabs(alignedNormal.y)) { //make sure the alignedNormal is the "up" vector in the hemisphere
+			e1 = Vec3f(alignedNormal.z, 0, -alignedNormal.x) / sqrt(alignedNormal.x * alignedNormal.x + alignedNormal.z * alignedNormal.z);
 		}
 		else {
-			e1 = Vec3f(0, -normal.z, normal.y) / sqrt(normal.y * normal.y + normal.z * normal.z);
+			e1 = Vec3f(0, -alignedNormal.z, alignedNormal.y) / sqrt(alignedNormal.y * alignedNormal.y + alignedNormal.z * alignedNormal.z);
 		}
 		e1.normalize();
-		Vec3f e2 = normal.cross(e1);
+		Vec3f e2 = alignedNormal.cross(e1);
 		e2.normalize();
 
 		Vec3f randomReflection = (e1 * cos(randomAngle) * distanceModifier2 +
 			e2 * sin(randomAngle) * distanceModifier2 +
-			normal * sqrt(1 - distanceModifier));
+			alignedNormal * sqrt(1 - distanceModifier));
 		randomReflection.normalize();
 
-		Vec3f indirectDiffuse = tracePixelColor(normalOrigin, randomReflection, scene, depth);
+		//Vec3f indirectDiffuse = tracePixelColor(normalOrigin, randomReflection, scene, depth);
 
-
+		//lightValue.setAll(0);
 		//Calculate color/lit/unlit (no material)
 		for (unsigned int i = 0; i < scene.size(); i++) {
-			if (!scene.at(i).emissionColor.calculateMagnitude() == 0) continue;
+			if (scene.at(i).emissionColor.calculateMagnitude() <= 0) continue;
+			
 			//shoot another ray towards the face of the light
 			Vec3f shadowRay = scene.at(i).pos - intersectionPoint;
 			Vec3f normalFromLight = intersectionPoint - scene.at(i).pos;
 			float lightDist = shadowRay.calculateMagnitude();
 			shadowRay.normalize();
 
+			bool insideLight = false;
+			if (lightDist < scene.at(i).radius) { //we're inside the light
+				continue;
+				//std::cout << "INSIDE LIGHT" << std::endl;
+				//lightValue.setEach(lightValue.x + scene.at(i).emissionColor.x, lightValue.y + scene.at(i).emissionColor.y, lightValue.z + scene.at(i).emissionColor.z);
+				//break;
+			}
+
 			//build a coordinate space in the hemisphere of the shadowray light
 			Vec3f se1 = Vec3f(0);
-			if (fabs(normal.x) > fabs(normal.y)) {
+			if (fabs(alignedNormal.x) > fabs(alignedNormal.y)) {
 				se1 = Vec3f(shadowRay.z, 0, -shadowRay.x) / sqrt(shadowRay.x * shadowRay.x + shadowRay.z * shadowRay.z);
 			}
 			else {
@@ -240,10 +325,12 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 			se2.normalize();
 
 			//calculate a random direction towards light
-			float angleToSphere = sqrt((1 - scene.at(i).radius) * (scene.at(i).radius)) / normalFromLight.dot(normalFromLight);
+			float angleToSphere = sqrt(1 - scene.at(i).radius * scene.at(i).radius / normalFromLight.dot(normalFromLight));
+			//if ((1 - ((scene.at(i).radius * scene.at(i).radius) / normalFromLight.dot(normalFromLight))) < 0) continue; //check if angle is too extreme
+			//std::cout << (1 - scene.at(i).radius) * (scene.at(i).radius) << std::endl;
 			float randX = (float)rand() / RAND_MAX; //get us a random point
 			float randomAngle2 = M_PI * 2 * ((float)rand() / RAND_MAX);
-			float angleCos = 1 - randX + (randX * angleToSphere);
+			float angleCos = 1 - randX + randX * angleToSphere;
 			float angleSin = sqrt(1 - angleCos * angleCos);
 			Vec3f newShadowRay = se1 * cos(randomAngle2) * angleSin + se2 * sin(randomAngle2) * angleSin + shadowRay * angleCos;
 			newShadowRay.normalize();
@@ -253,51 +340,124 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 			float s0 = 0;
 			float s1 = 0;
 			bool inShadow = false;
-			bool insideLight = false;
-			if (lightDist < scene.at(i).radius) { //we're inside the light
-				//std::cout << "INSIDE LIGHT" << std::endl;
-				lightValue.setEach(lightValue.x + scene.at(i).emissionColor.x, lightValue.y + scene.at(i).emissionColor.y, lightValue.z + scene.at(i).emissionColor.z);
-			}
+			
 
 
 			//check to see if another object is inbetween the light
 			for (unsigned int j = 0; j < scene.size(); j++) {
-				if (scene.at(j).intersect(normalOrigin, newShadowRay, s0, s1) && s0 < lightDist) {
+				if (scene.at(j).intersect(normalOrigin, shadowRay, s0, s1) && s0 < lightDist) {
 					inShadow = true;
 					break;
 				}
 			}
 			if (!inShadow) {
-				lightValue = lightValue + normal.dot(newShadowRay);
+				double brdf = 2 * M_PI * (1.0 - angleToSphere);
+				//std::cout << brdf << std::endl;
+				lightValue = lightValue + objectColor * (alignedNormal.dot(newShadowRay) * brdf) * M_1_PI;
 				//if (lightValue.calculateMagnitude() < 0.02) lightValue = (float)0.02;
 			}
 
 		}
-		Vec3f totalLight = (indirectDiffuse + lightValue);
+		//Vec3f totalLight = (indirectDiffuse + lightValue);
 		//totalLight.clamp();
 		//objectColor = objectColor * totalLight;
-		objectColor = currentObject.emissionColor + objectColor * indirectDiffuse;
-
+		//std::cout << lightValue.calculateMagnitude() << std::endl;
+		if (calculateEmission) {
+			objectColor = currentObject.emissionColor + lightValue + objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, false);
+			//objectColor = currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, false);
+		}
+		else {
+			objectColor = lightValue + objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, true);
+			//objectColor = objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, true);
+		}
 		return objectColor;
 	}
 	case 1: {//mirror
 		Vec3f reflDirection = rayDirection - normal * 2 * (rayDirection.dot(normal));
-		return currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, reflDirection, scene, depth);
+		return currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, reflDirection, scene, depth, true);
 	}
 	case 2: {//glass
-		return Vec3f(0);
+		
+		
+		//std::cout << "glass" << std::endl;
+		//first calculate reflection
+		Vec3f reflDirection = rayDirection - normal * 2 * (rayDirection.dot(normal));
+
+		epsilon = 1e-3;
+
+		float iorValue = currentObject.IOR;
+		bool outGoingIn = false;
+		if (normal.dot(alignedNormal) > 0) outGoingIn = true;
+		if (outGoingIn) iorValue = 1 / iorValue;
+		float normDirAngle = rayDirection.dot(alignedNormal);
+
+		float interiorAngle = 1 - (iorValue * iorValue) * (1 - normDirAngle * normDirAngle);
+		//std::cout << interiorAngle << std::endl;
+		if (interiorAngle < 0) {
+			//std::cout << "reflecting" << std::endl;
+			return currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, reflDirection, scene, depth, true);
+
+		}
+
+		//then calculate refraction
+		Vec3f transmissionRay = Vec3f(0);
+		Vec3f refractOrigin = intersectionPoint - normal * epsilon;
+		float theta = 0;
+
+		if (outGoingIn) {
+			transmissionRay = rayDirection * iorValue - normal * (normDirAngle * iorValue + sqrt(interiorAngle));
+			transmissionRay.normalize();
+
+			refractOrigin = intersectionPoint - normal * epsilon;
+
+			theta = -normDirAngle;
+		}
+		else {
+			//std::cout << "inside sphere" << std::endl;
+			transmissionRay = rayDirection * iorValue - normal * (-1 * (normDirAngle * iorValue + sqrt(interiorAngle)));
+			transmissionRay.normalize();
+
+			refractOrigin = intersectionPoint + normal * epsilon;
+
+			theta = transmissionRay.dot(normal);
+		}
+
+		//std::cout << transmissionRay.x << ", " << transmissionRay.y << ", " << transmissionRay.z << std::endl;
+		//calculate incidence of relfection (f0) and the fresnel equation
+		float f0 = ((currentObject.IOR - 1) * (currentObject.IOR - 1)) / ((currentObject.IOR + 1) * (currentObject.IOR + 1));
+		float fresnel = f0 + (1 - f0) * ((1 - theta) * (1 - theta) * (1 - theta) * (1 - theta) * (1 - theta));
+
+		//then check for total internal reflection
+		//check if angle of incidence is too shallow,
+		if (depth > 2) {
+			float fresnelThreshold = fresnel * 0.5 + 0.25;
+			if (((float)rand() / RAND_MAX) < fresnelThreshold) {
+				//return currentObject.emissionColor + objectColor * tracePixelColor(intersectionPoint, reflDirection, scene, depth, true) * (fresnel / fresnelThreshold);
+				Vec3f col = currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, reflDirection, scene, depth, true) * (fresnel / fresnelThreshold);
+				return col;
+
+			}
+			else {
+				//return currentObject.emissionColor + objectColor * tracePixelColor(intersectionPoint, transmissionRay, scene, depth, true) * ((1 - fresnel) / (1 - fresnelThreshold));
+				Vec3f col = currentObject.emissionColor + objectColor * tracePixelColor(refractOrigin, transmissionRay, scene, depth, true) * ((1 - fresnel) / (1 - fresnelThreshold)) ;
+				return col;
+			}
+		}
+		else {
+			//return currentObject.emissionColor + objectColor * (tracePixelColor(intersectionPoint, reflDirection, scene, depth, true) * fresnel + tracePixelColor(intersectionPoint, transmissionRay, scene, depth, true) * (1 - fresnel));
+			Vec3f refl = tracePixelColor(normalOrigin, reflDirection, scene, depth, true) * fresnel;
+			Vec3f refr = tracePixelColor(refractOrigin, transmissionRay, scene, depth, true) * (1 - fresnel);
+			Vec3f col = currentObject.emissionColor + objectColor * (refl + refr);
+			return col;
+		}
+
+		//return Vec3f(0);
+		
 	}
 	default: { //the sphere is something else and we don't know what it is
 		return Vec3f(0);
 	}
 	}
-
-	
-	//lightValue = (lightValue / lights.size());
-	//lightValue.clamp();
-	//objectColor = objectColor * lightValue;
-	
-
 }
 
 Vec3f calculateRayDirection(int columns, int rows, int x, int y, float sX, float sY, Camera camera) {
@@ -368,21 +528,21 @@ void renderRow(Vec3f** image, int y, int rows, int columns, int maxSamples, Came
 
 					float closestPoint = INFINITY;
 
-					for (unsigned int i = 0; i < scene.size(); i++) {
-						Vec3f rayOrigin(0);
-						Vec3f rayDirection(0);
+					//for (unsigned int i = 0; i < scene.size(); i++) {
+					Vec3f rayOrigin(0);
+					Vec3f rayDirection(0);
 
-						rayOrigin.setEach(camera.pos.x, camera.pos.y, camera.pos.z);
-						rayDirection = calculateRayDirection(columns, rows, x, y, rX, rY, camera);
+					rayOrigin.setEach(camera.pos.x, camera.pos.y, camera.pos.z);
+					rayDirection = calculateRayDirection(columns, rows, x, y, rX, rY, camera);
 
-						int depth = 0;
+					int depth = 0;
 
 
-						image[y][x] = image[y][x] + tracePixelColor(rayOrigin, rayDirection, scene,
-							depth);
-						//image[y][x].clamp();
-						timesSampled++;
-					}
+					image[y][x] = image[y][x] + tracePixelColor(rayOrigin, rayDirection, scene,
+						depth, true);
+					//image[y][x].clamp();
+					timesSampled++;
+					//}
 				}
 			}
 		}
