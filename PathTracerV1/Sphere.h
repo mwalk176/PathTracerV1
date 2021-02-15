@@ -11,6 +11,7 @@ struct Sphere {
 	float refl = 0;
 	float refract = 0;
 	float IOR = 1.5;
+	float gammaBoost = 1.0;
 	int type = 0; //0 diffuse, 1 pure specular, 2 glass
 	//bool light = false;
 
@@ -29,6 +30,8 @@ struct Sphere {
 		: pos(xPos, yPos, zPos), color(cR, cG, cB), radius(r), refl(inRefl), refract(inRefract), IOR(inIOR) {}
 	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType) 
 		: pos(inPos), color(inColor), emissionColor(inEmission), radius(r), type(inType) {}
+	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType, float inGamma)
+		: pos(inPos), color(inColor), emissionColor(inEmission), radius(r), type(inType), gammaBoost(inGamma) {}
 
 
 	bool intersect(Vec3f rayOrigin, Vec3f rayDirection, float& p0, float& p1) {
