@@ -9,6 +9,7 @@
 *.nknc
 *.autosave
 *.mov
+*.txt
 output/*
 
 # User-specific files
