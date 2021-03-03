@@ -39,7 +39,7 @@ Vec3f calculateRayDirection(int columns, int rows, int x, int y, float sX, float
 std::ofstream writeToPPMFile(Vec3f** image, int width, int height, int maximumColorValue, int frameNum);
 int getClosestObject(Vec3f rayOrigin, Vec3f rayDirection, std::vector<Sphere>& scene, float& closestPoint);
 void renderRow(Vec3f** image, int y, int rows, int columns, int maxSamples, Camera camera,
-	std::vector<Sphere> scene);
+	std::vector<Sphere> scene, bool averageValues, int currentSamples);
 
 
 
@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
 	const int startFrame = atoi(argv[3]);
 	const int endFrame = atoi(argv[4]);
 	const int maxSamples = atoi(argv[5]);
+	const int iterateSamples = atoi(argv[6]);
 	int maximumColorValue = 255;
 
 	//create a 2d grid of pixel objects
@@ -70,38 +71,257 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < rows; i++) {
 		image[i] = new Vec3f[columns];
 	}
+	Vec3f** image2 = new Vec3f * [rows];
+	for (int i = 0; i < rows; i++) {
+		image2[i] = new Vec3f[columns];
+	}
 
-	for (int frameNum = startFrame; frameNum <= endFrame; frameNum++) {
-		float currentTime = (float)frameNum / 24.0;
 
-		std::cout << "Rendering Frame " << frameNum << " of " << endFrame << std::endl;
+	/*THIS IS THE MAIN SCENE, BUILD THE SCENE YOU WANT BY MODIFYING THESE VALUES*/
+
+	//Camera camera;
+
+	//std::vector<Sphere> scene;
+
+	////4 spheres and ground/dome light scene
+	//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
+	//scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
+	////scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(40), 2, 0));	//sphere light
+	//scene.push_back(Sphere(1, -0.9, 0, 0.7, 1, 1, 3));						//blue sphere
+	//scene.push_back(Sphere(5, -2.9, -2, 0.2, 0.9, 0.5, 1));			//green sphere
+	//scene.push_back(Sphere(Vec3f(-4, -2.9, -3.5), Vec3f(1), Vec3f(0), 1, 1)); //metal sphere
+	////scene.push_back(Sphere(Vec3f(0,-1,0), Vec3f(1), Vec3f(0), 3, 2)); //glass sphere
+	////scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
+	//scene.push_back(Sphere(-5, -1.9, 1.5, 1, 0.4, 0.4, 2));				//red sphere
+	//scene.push_back(Sphere(Vec3f(2.5, -2.65, -4.5), Vec3f(1), Vec3f(0), 1.25, 2)); //glass sphere
+	//scene.push_back(Sphere(-2, -2.9, -2, 1, 1, 0, 1));					//yellow sphere
+	//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
 
 
-		/*THIS IS THE MAIN SCENE, BUILD THE SCENE YOU WANT BY MODIFYING THESE VALUES*/
+
+
+
+
+
+
+
+	/*END MAIN SCENE*/
+
+
+	std::cout << "Starting Render..." << std::endl;
+
+	if (iterateSamples == 1) {
 
 		Camera camera;
 
 		std::vector<Sphere> scene;
-		
-		////4 spheres and ground/dome light scene
-		//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
-		//scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
-		////scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(40), 2, 0));	//sphere light
-		//scene.push_back(Sphere(1, -0.9, 0, 0.7, 1, 1, 3));						//blue sphere
-		//scene.push_back(Sphere(5, -2.9, -2, 0.2, 0.9, 0.5, 1));			//green sphere
+
+				////cornell box scene
+		//camera.pos.setEach(0, 0, -200);
+		//scene.push_back(Sphere(Vec3f(0, 749.6, -50), Vec3f(1), Vec3f(10), 700, 0));					//light
+		//scene.push_back(Sphere(-100100, 50, 0, 1.0, 0.5, 0.5, 100000));							//left wall
+		//scene.push_back(Sphere(100100, 50, 0, 0.4, 0.7, 1.0, 100000));							//right wall
+		//scene.push_back(Sphere(0, 0, 100000, 0.75, 0.75, 0.75, 100000));						//back wall
+		////scene.push_back(Sphere(50, 40.8, -1e5+170, 0.0, 0.0, 0.0, 1e5));							//front wall
+		//scene.push_back(Sphere(0, -100050, 0, 0.75, 0.75, 0.75, 100000));							//ground
+		//scene.push_back(Sphere(0, 100050, 0, 0.75, 0.75, 0.75, 100000));							//ceiling
+
+		////scene.push_back(Sphere(25, -35, -70, 0.75, 0.75, 0.75, 15));								//right sphere
+		////scene.push_back(Sphere(-30, -30, -40, 0.75, 0.75, 0.75, 20));								//left sphere
+		//scene.push_back(Sphere(Vec3f(-45, -29, -55), Vec3f(1), Vec3f(0), 20, 1));					//left sphere
+		//scene.push_back(Sphere(Vec3f(40, -34, -70), Vec3f(1), Vec3f(0), 15, 2, 2.0));					//right sphere
+		//scene.push_back(Sphere(Vec3f(0, -27, -35), Vec3f(0.5, 0.9, 1), Vec3f(0), 22, 0));
+
+		//camera.pos.setEach(0, 0, -12.5);
+		//scene.push_back(Sphere(Vec3f(0, 0, 100000), Vec3f(1), Vec3f(0), 100000, 0)); //back wall
+		////scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
+		////scene.push_back(Sphere(Vec3f(0, -0.3, -10), Vec3f(1), Vec3f(10), 1, 0));
+		////scene.push_back(Sphere(Vec3f(0, -0.3, -1), Vec3f(1), Vec3f(0), 0.5, 2));
+		//scene.push_back(Sphere(Vec3f(-2.5, -2.165, -5), Vec3f(1), Vec3f(30, 0, 0), 1, 0));	//red sphere
+		//scene.push_back(Sphere(Vec3f(0, 2.165, -5), Vec3f(1), Vec3f(0, 30, 0), 1, 0));		//green sphere
+		//scene.push_back(Sphere(Vec3f(2.5, -2.165, -5), Vec3f(1), Vec3f(0, 0, 30), 1, 0));	//blue sphere
+
+				//4 spheres and ground/dome light scene
+		camera.pos.setEach(0, 0, -15);
+		scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.5), 10000, 0));	//dome light
+		scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(10), 2, 0));	//sphere light
+		scene.push_back(Sphere(Vec3f(1, -0.9, 0), Vec3f(0.7, 1, 1), Vec3f(0), 3, 3));						//blue sphere
+		scene.push_back(Sphere(5, -2.9, -2, 0.2, 0.9, 0.5, 1));			//green sphere
 		//scene.push_back(Sphere(Vec3f(-4, -2.9, -3.5), Vec3f(1), Vec3f(0), 1, 1)); //metal sphere
 		////scene.push_back(Sphere(Vec3f(0,-1,0), Vec3f(1), Vec3f(0), 3, 2)); //glass sphere
 		////scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
 		//scene.push_back(Sphere(-5, -1.9, 1.5, 1, 0.4, 0.4, 2));				//red sphere
 		//scene.push_back(Sphere(Vec3f(2.5, -2.65, -4.5), Vec3f(1), Vec3f(0), 1.25, 2)); //glass sphere
 		//scene.push_back(Sphere(-2, -2.9, -2, 1, 1, 0, 1));					//yellow sphere
-		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
+		scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
 
+		std::cout << "Iteration Mode" << std::endl;
+
+		float aspectRatio = (float)columns / (float)rows;
+
+		unsigned int numCores = std::thread::hardware_concurrency();
+		std::vector<std::thread> threadList;
+		unsigned int coreCount = 0;
+
+		time_t timer;
+		double startTime = time(&timer);
+		double deltaTime = -1;
+		bool calculateTime = false;
+		double averageCycleTime = 0;
+		double totalTime = 0;
+
+		int s = 0;
+		int checkpointThreshold = 50;
+
+
+		std::ifstream file("./output/temp.txt");
+		if (file.is_open()) {
+			std::cout << "Temp file exists, pulling values from it" << std::endl;
+			file >> s;
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < columns; x++) {
+					float r, g, b;
+					file >> r;
+					file >> g;
+					file >> b;
+					image[y][x] = Vec3f(r, g, b);
+				}
+			}
+			file.close();
+		}
+
+		while (s < maxSamples) {
+
+			if (calculateTime) {
+				deltaTime = time(&timer) - startTime;
+				startTime = time(&timer);
+				averageCycleTime = averageCycleTime == 0 ? (averageCycleTime + deltaTime) : (averageCycleTime + deltaTime) / 2.0;
+				totalTime = totalTime + deltaTime;
+				calculateTime = false;
+				std::cout << "Cycle complete, current s: " << s << std::endl;
+				std::cout << "  Elapsed time: " << (int)(totalTime / 60) << " minutes, " << (int)totalTime % 60 << " seconds" << std::endl;
+				std::cout << "  Previous cycle took " << deltaTime << " seconds to complete" << std::endl;
+				std::cout << "  Average cycle time: " << averageCycleTime << " seconds" << std::endl;
+				//int remainingSamples = rows - y;
+				//double remainingCycles = remainingRows / numCores;
+				//double estimatedTime = remainingCycles * averageCycleTime;
+				//int minutesLeft = estimatedTime / 60;
+				//int secondsLeft = (int)estimatedTime % 60;
+				//std::cout << "  " << remainingCycles << " cycles left" << std::endl;
+				//std::cout << estimatedTime << " seconds remaining" << std::endl;
+				//std::cout << "  Estimated time remaining: " << minutesLeft << " minutes, " << secondsLeft << " seconds" << std::endl << std::endl;
+
+
+			}
+
+			
+			//For each pixel in the image
+			for (int y = 0; y < rows; y++) {
+				if(y % 100 == 0) std::cout << "y: " << y << std::endl;
+				
+
+				////option to render single-Threaded, uncomment this if you want to use it
+				//std::cout << "y: " << y << std::endl;
+				//renderRow(image, y, rows, columns, maxSamples, camera, scene);
+				//calculateTime = true;
+
+				//create thread for the row
+				threadList.push_back(std::thread(renderRow, std::ref(image), y,
+					rows, columns, maxSamples, camera, std::ref(scene), true, s));
+
+				//if there's max threads for cpu cores, wait until they're done before adding more
+				coreCount++;
+				if (coreCount % numCores == 0) {
+					for (int i = 0; i < threadList.size(); i++) {
+						threadList.at(i).join();
+					}
+					threadList.clear();
+					
+				}
+			}
+			calculateTime = true;
+			s++; //multiply this by 4 to get actual amount (because of the 2x2 subpixel sampling)
+
+			if (s % checkpointThreshold == 0) { //reached a checkpoint, save to file
+				std::cout << "reached checkpoint" << std::endl;
+				std::ofstream file("./output/temp.txt");
+				std::cout << "writing to temp file, DO NOT EXIT" << std::endl;
+				file << s << " ";
+
+				int numSamples = s * 4;
+
+				for (int y = 0; y < rows; y++) {
+					for (int x = 0; x < columns; x++) {
+						float r, g, b;
+						r = image[y][x].x;
+						g = image[y][x].y;
+						b = image[y][x].z;
+						file << r << " ";
+						file << g << " ";
+						file << b << " ";
+						//image2[y][x] = image[y][x] / numSamples;
+						//image2[y][x].clamp();
+						//image[y][x] = Vec3f(r, g, b);
+					}
+				}
+				file.close();
+				//}
+
+				
+				for (int y = 0; y < rows; y++) {
+					for (int x = 0; x < columns; x++) {
+						image2[y][x] = image[y][x] / numSamples;
+						image2[y][x].clamp();
+					}
+				}
+
+				std::cout << "Temp file written, writing to PPM File now" << std::endl;
+				writeToPPMFile(image2, rows, columns, maximumColorValue, 1);
+			}
+
+				
+
+			//Write image
+			//writeToPPMFile(image, rows, columns, maximumColorValue, 1);
+		}
+
+		
+
+		return 0;
+	}
+
+
+
+	for (int frameNum = startFrame; frameNum <= endFrame; frameNum++) {
+		float currentTime = (float)frameNum / 24.0;
+
+		std::cout << "Rendering Frame " << frameNum << " of " << endFrame << std::endl;
+
+		Camera camera;
+
+		std::vector<Sphere> scene;
+
+		camera.pos.setEach(0, 0, -13 + ((frameNum - 1) % 12));
+
+		////4 spheres and ground/dome light scene
+		//camera.pos.setEach(0, 0, -15 + ((frameNum - 1.0) / 24.0) * 2);
+		//scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.5), 10000, 0));	//dome light
+		//scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(10), 2, 0));	//sphere light
+		//scene.push_back(Sphere(Vec3f(1, -0.9, 0), Vec3f(0.7, 1, 1), Vec3f(0), 3, 3));						//blue sphere
+		//scene.push_back(Sphere(5, -2.9, -2, 0.2, 0.9, 0.5, 1));			//green sphere
+		////scene.push_back(Sphere(Vec3f(-4, -2.9, -3.5), Vec3f(1), Vec3f(0), 1, 1)); //metal sphere
+		//////scene.push_back(Sphere(Vec3f(0,-1,0), Vec3f(1), Vec3f(0), 3, 2)); //glass sphere
+		//////scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
+		////scene.push_back(Sphere(-5, -1.9, 1.5, 1, 0.4, 0.4, 2));				//red sphere
+		////scene.push_back(Sphere(Vec3f(2.5, -2.65, -4.5), Vec3f(1), Vec3f(0), 1.25, 2)); //glass sphere
+		////scene.push_back(Sphere(-2, -2.9, -2, 1, 1, 0, 1));					//yellow sphere
+		//scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
 
 		////spheres in a line
 		//camera.pos.setEach(0, 0, -15 + (currentTime));
 		////camera.pos.setEach(0, 0, -15);
-		////scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.9 - (currentTime/4.0) + 0.1), 10000, 0));	//dome light
+		//if (frameNum < 97) scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.9 - (currentTime/4.0) + 0.1), 10000, 0));	//dome light
+		////else scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(0.9 - (currentTime / 4.0) + 0.1), 10000, 0));	//dome light
 		//scene.push_back(Sphere(Vec3f(-6, -1.9, 0), Vec3f(1), Vec3f(0), 2, 1)); //metal sphere
 		//scene.push_back(Sphere(Vec3f(-2, -1.9, 0), Vec3f(1), Vec3f(0), 2, 2)); //glass sphere
 		//scene.push_back(Sphere(Vec3f(2, -1.9, 0), Vec3f(1), Vec3f(1), 2, 0)); //light sphere
@@ -109,26 +329,20 @@ int main(int argc, char* argv[]) {
 		//scene.push_back(Sphere(0, -10004, 0, 0.8, 0.8, 0.8, 10000));		//grey ground
 		////scene.push_back(Sphere(0, 0, 10010, 0.8, 0.8, 0.8, 10000));		//grey ground
 
+		//				//4 spheres and ground/dome light scene
+		//camera.pos.setEach(0, 0, -15);
+		scene.push_back(Sphere(Vec3f(0), Vec3f(1), Vec3f(1), 10000, 0));	//dome light
+		//scene.push_back(Sphere(Vec3f(10, 5, 0), Vec3f(1), Vec3f(10), 2, 0));	//sphere light
+		scene.push_back(Sphere(Vec3f(0, -0.9, 0), Vec3f(0.7, 1, 1), Vec3f(0), 3, 0));						//blue sphere
+		//scene.push_back(Sphere(5, -2.9, -2, 0.2, 0.9, 0.5, 1));			//green sphere
+		////scene.push_back(Sphere(Vec3f(-4, -2.9, -3.5), Vec3f(1), Vec3f(0), 1, 1)); //metal sphere
+		//////scene.push_back(Sphere(Vec3f(0,-1,0), Vec3f(1), Vec3f(0), 3, 2)); //glass sphere
+		//////scene.push_back(Sphere(Vec3f(4, -2.75, -2), Vec3f(1), Vec3f(0), 1, 2)); //glass sphere
+		////scene.push_back(Sphere(-5, -1.9, 1.5, 1, 0.4, 0.4, 2));				//red sphere
+		////scene.push_back(Sphere(Vec3f(2.5, -2.65, -4.5), Vec3f(1), Vec3f(0), 1.25, 2)); //glass sphere
+		////scene.push_back(Sphere(-2, -2.9, -2, 1, 1, 0, 1));					//yellow sphere
+		scene.push_back(Sphere(0, -10004, 0, 0.9, 0.9, 0.9, 10000));		//grey ground
 		
-		//cornell box scene
-		camera.pos.setEach(0, 0, -200 + ((frameNum - 1.0) / 24.0) * 10);
-		scene.push_back(Sphere(Vec3f(0, 749.6, -50), Vec3f(1), Vec3f(10), 700, 0));					//light
-		scene.push_back(Sphere(-100100, 50, 0,  1.0, 0.5, 0.5, 100000));							//left wall
-		scene.push_back(Sphere(100100,  50, 0,  0.4, 0.7, 1.0, 100000));							//right wall
-		scene.push_back(Sphere(0,		0, 100000, 0.75, 0.75, 0.75, 100000));						//back wall
-		//scene.push_back(Sphere(50, 40.8, -1e5+170, 0.0, 0.0, 0.0, 1e5));							//front wall
-		scene.push_back(Sphere(0, -100050, 0,  0.75, 0.75, 0.75, 100000));							//ground
-		scene.push_back(Sphere(0, 100050, 0, 0.75, 0.75, 0.75, 100000));							//ceiling
-
-		//scene.push_back(Sphere(25, -35, -70, 0.75, 0.75, 0.75, 15));								//right sphere
-		//scene.push_back(Sphere(-30, -30, -40, 0.75, 0.75, 0.75, 20));								//left sphere
-		scene.push_back(Sphere(Vec3f(-45, -29, -55), Vec3f(1), Vec3f(0), 20, 1));					//left sphere
-		scene.push_back(Sphere(Vec3f(40, -34, -70), Vec3f(1), Vec3f(0), 15, 2, 2.0));					//right sphere
-		scene.push_back(Sphere(Vec3f(0, -27, -35), Vec3f(0.5, 0.9, 1), Vec3f(0), 22, 0));
-		
-
-		
-		/*END MAIN SCENE*/
 
 		float aspectRatio = (float)columns / (float)rows;
 
@@ -175,7 +389,7 @@ int main(int argc, char* argv[]) {
 			
 			//create thread for the row
 			threadList.push_back(std::thread(renderRow, std::ref(image), y,
-				rows, columns, maxSamples, camera, std::ref(scene)));
+				rows, columns, maxSamples, camera, std::ref(scene), false, 0));
 
 			//if there's max threads for cpu cores, wait until they're done before adding more
 			coreCount++;
@@ -401,6 +615,103 @@ Vec3f tracePixelColor(Vec3f& rayOrigin, Vec3f& rayDirection,
 			return col;
 		}	
 	}
+	case 3: {//glossy
+
+		float randRough = (float)rand() / RAND_MAX;
+		float roughnessThreshold = 0.8;
+
+		if (randRough > roughnessThreshold) {
+			Vec3f reflDirection = rayDirection - normal * 2 * (rayDirection.dot(normal));
+			return currentObject.emissionColor + objectColor * tracePixelColor(normalOrigin, reflDirection, scene, depth, true);
+		}
+			
+
+		//diffuse reflections
+		//calculate a random ray direction in the hemisphere around the normal
+		float randomAngle = M_PI * 2 * ((float)rand() / RAND_MAX);
+		float distanceModifier = (float)rand() / RAND_MAX;
+		float distanceModifier2 = sqrt(distanceModifier);
+
+		//get a set of basis vectors to have a hemisphere around the alignedNormal of the object
+		Vec3f e1 = Vec3f(0);
+		if (fabs(alignedNormal.x) > fabs(alignedNormal.y)) { //make sure the alignedNormal is the "up" vector in the hemisphere
+			e1 = Vec3f(alignedNormal.z, 0, -alignedNormal.x) / sqrt(alignedNormal.x * alignedNormal.x + alignedNormal.z * alignedNormal.z);
+		}
+		else {
+			e1 = Vec3f(0, -alignedNormal.z, alignedNormal.y) / sqrt(alignedNormal.y * alignedNormal.y + alignedNormal.z * alignedNormal.z);
+		}
+		e1.normalize();
+		Vec3f e2 = alignedNormal.cross(e1);
+		e2.normalize();
+
+		Vec3f randomReflection = (e1 * cos(randomAngle) * distanceModifier2 +
+			e2 * sin(randomAngle) * distanceModifier2 +
+			alignedNormal * sqrt(1 - distanceModifier));
+		randomReflection.normalize();
+
+		//Calculate color/lit/unlit (no material)
+		for (unsigned int i = 0; i < scene.size(); i++) {
+			if (scene.at(i).emissionColor.calculateMagnitude() <= 0) continue;
+
+			//shoot another ray towards the face of the light
+			Vec3f shadowRay = scene.at(i).pos - intersectionPoint;
+			Vec3f normalFromLight = intersectionPoint - scene.at(i).pos;
+			float lightDist = shadowRay.calculateMagnitude();
+			shadowRay.normalize();
+
+			bool insideLight = false;
+			if (lightDist < scene.at(i).radius) { //we're inside the light
+				continue;
+			}
+
+			//build a coordinate space in the hemisphere of the shadowray light
+			Vec3f se1 = Vec3f(0);
+			if (fabs(alignedNormal.x) > fabs(alignedNormal.y)) {
+				se1 = Vec3f(shadowRay.z, 0, -shadowRay.x) / sqrt(shadowRay.x * shadowRay.x + shadowRay.z * shadowRay.z);
+			}
+			else {
+				se1 = Vec3f(0, -shadowRay.z, shadowRay.y) / sqrt(shadowRay.y * shadowRay.y + shadowRay.z * shadowRay.z);
+			}
+			se1.normalize();
+			Vec3f se2 = shadowRay.cross(se1);
+			se2.normalize();
+
+			//calculate a random direction towards light
+			float angleToSphere = sqrt(1 - scene.at(i).radius * scene.at(i).radius / normalFromLight.dot(normalFromLight));
+			float randX = (float)rand() / RAND_MAX; //get us a random point
+			float randomAngle2 = M_PI * 2 * ((float)rand() / RAND_MAX);
+			float angleCos = 1 - randX + randX * angleToSphere;
+			float angleSin = sqrt(1 - angleCos * angleCos);
+			Vec3f newShadowRay = se1 * cos(randomAngle2) * angleSin + se2 * sin(randomAngle2) * angleSin + shadowRay * angleCos;
+			newShadowRay.normalize();
+
+			float s0 = 0;
+			float s1 = 0;
+			bool inShadow = false;
+
+
+
+			//check to see if another object is inbetween the light
+			for (unsigned int j = 0; j < scene.size(); j++) {
+				if (scene.at(j).intersect(normalOrigin, shadowRay, s0, s1) && s0 < lightDist) {
+					inShadow = true;
+					break;
+				}
+			}
+			if (!inShadow) {
+				double brdf = 2 * M_PI * (1.0 - angleToSphere);
+				lightValue = lightValue + objectColor * (alignedNormal.dot(newShadowRay) * brdf) * M_1_PI;
+			}
+
+		}
+		if (calculateEmission) {
+			objectColor = currentObject.emissionColor + lightValue + objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, false);
+		}
+		else {
+			objectColor = lightValue + objectColor * tracePixelColor(normalOrigin, randomReflection, scene, depth, true);
+		}
+		return objectColor;
+	}
 	default: { //the sphere is something else and we don't know what it is
 		return Vec3f(0);
 	}
@@ -453,17 +764,19 @@ int getClosestObject(Vec3f rayOrigin, Vec3f rayDirection, std::vector<Sphere>& s
 }
 
 void renderRow(Vec3f** image, int y, int rows, int columns, int maxSamples, Camera camera,
-	std::vector<Sphere> scene) {
-	srand(std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	for (int x = 0; x < columns; x++) {
+	std::vector<Sphere> scene, bool averageValues, int currentSamples) {
+	srand(std::hash<std::thread::id>{}(std::this_thread::get_id()) + currentSamples);
 
-		image[y][x].setAll(0); //SET BACKGROUND COLOR
-		
+	if (averageValues) {
+		for (int x = 0; x < columns; x++) {
 
-		int timesSampled = 0;
-		for (int subY = 0; subY < 2; subY++) { //calculate 2x2 subpixel grid
-			for (int subX = 0; subX < 2; subX++) {
-				for (int samples = 0; samples < maxSamples; samples++) {
+			//image[y][x].setAll(0); //SET BACKGROUND COLOR
+
+
+			//int timesSampled = 0;
+			for (int subY = 0; subY < 2; subY++) { //calculate 2x2 subpixel grid
+				for (int subX = 0; subX < 2; subX++) {
+					//for (int samples = 0; samples < maxSamples; samples++) {
 					float rX = ((float)rand() / RAND_MAX) / 2.0;
 					float rY = ((float)rand() / RAND_MAX) / 2.0;
 					if (subX == 1) rX += 0.5;
@@ -482,14 +795,54 @@ void renderRow(Vec3f** image, int y, int rows, int columns, int maxSamples, Came
 
 					image[y][x] = image[y][x] + tracePixelColor(rayOrigin, rayDirection, scene,
 						depth, true);
-					timesSampled++;
+					//timesSampled++;
+					//}
 				}
 			}
+			//image[y][x] = (image[y][x] / timesSampled);
+			//image[y][x].clamp();
 		}
-		image[y][x] = (image[y][x] / timesSampled);
-		image[y][x].clamp();
 	}
+	else {
+		for (int x = 0; x < columns; x++) {
+
+			image[y][x].setAll(0); //SET BACKGROUND COLOR
+
+
+			int timesSampled = 0;
+			for (int subY = 0; subY < 2; subY++) { //calculate 2x2 subpixel grid
+				for (int subX = 0; subX < 2; subX++) {
+					for (int samples = 0; samples < maxSamples; samples++) {
+						float rX = ((float)rand() / RAND_MAX) / 2.0;
+						float rY = ((float)rand() / RAND_MAX) / 2.0;
+						if (subX == 1) rX += 0.5;
+						if (subY == 1) rY += 0.5;
+
+						float closestPoint = INFINITY;
+
+						Vec3f rayOrigin(0);
+						Vec3f rayDirection(0);
+
+						rayOrigin.setEach(camera.pos.x, camera.pos.y, camera.pos.z);
+						rayDirection = calculateRayDirection(columns, rows, x, y, rX, rY, camera);
+
+						int depth = 0;
+
+
+						image[y][x] = image[y][x] + tracePixelColor(rayOrigin, rayDirection, scene,
+							depth, true);
+						timesSampled++;
+					}
+				}
+			}
+			image[y][x] = (image[y][x] / timesSampled);
+			image[y][x].clamp();
+		}
+	}
+	
 }
+
+
 
 std::ofstream writeToPPMFile(Vec3f** image, int rows, int columns, int maximumColorValue, int frameNum) {
 
