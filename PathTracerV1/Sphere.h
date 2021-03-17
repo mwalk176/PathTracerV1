@@ -2,36 +2,58 @@
 #define SPHERE_H
 
 #include "Vec3f.h"
+#include "Object.h"
 
-struct Sphere {
-	Vec3f pos = Vec3f();
-	Vec3f color = Vec3f(1);
-	Vec3f emissionColor = Vec3f(0);
+class Sphere : public Object {
+public:
+	//Vec3f pos = Vec3f();
+	//Vec3f color = Vec3f(1);
+	//Vec3f emissionColor = Vec3f(0);
 	float radius = 1;
-	float refl = 0;
-	float refract = 0;
-	float IOR = 1.5;
-	float gammaBoost = 1.0;
-	int type = 0; //0 diffuse, 1 pure specular, 2 glass
+	//float refl = 0;
+	//float refract = 0;
+	//float IOR = 1.5;
+	//float gammaBoost = 1.0;
+	//int type = 0; //0 diffuse, 1 pure specular, 2 glass
 	//bool light = false;
 
-	Sphere() : pos(0), radius(1), color(1) {}
-	Sphere(float num) : pos(num), radius(num), color(1) {}
-	Sphere(float xPos, float yPos, float zPos, float r) : pos(xPos, yPos, zPos), radius(r) {}
+	Sphere() { pos = 0; radius = 1;  color = 1; }
+	Sphere(float num) { pos = num; radius = num; color = num; }
+	//Sphere(float xPos, float yPos, float zPos, float r) : pos(xPos, yPos, zPos), radius(r) {}
 	//Sphere(float xPos, float yPos, float zPos, bool isLight) : pos(xPos, yPos, zPos), light(isLight) {}
 	//Sphere(float xPos, float yPos, float zPos, float r, bool isLight) 
 	//	: pos(xPos, yPos, zPos), radius(r), light(isLight) {}
 	//Sphere(float xPos, float yPos, float zPos, float r, bool isLight, float eR, float eG, float eB) 
 	//	: pos(xPos, yPos, zPos), radius(r), light(isLight), emissionColor(eR, eG, eB) {}
-	Sphere(float xPos, float yPos, float zPos, float cR, float cG, float cB, float r)
-		: pos(xPos, yPos, zPos), color(cR, cG, cB), radius(r) {}
+	Sphere(float xPos, float yPos, float zPos, float cR, float cG, float cB, float r) {
+		pos = Vec3f(xPos, yPos, zPos);
+		color = Vec3f(cR, cG, cB);
+		radius = r;
+	}
 	Sphere(float xPos, float yPos, float zPos, float cR, float cG, float cB, float r,
-		float inRefl, float inRefract, float inIOR)
-		: pos(xPos, yPos, zPos), color(cR, cG, cB), radius(r), refl(inRefl), refract(inRefract), IOR(inIOR) {}
-	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType) 
-		: pos(inPos), color(inColor), emissionColor(inEmission), radius(r), type(inType) {}
-	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType, float inGamma)
-		: pos(inPos), color(inColor), emissionColor(inEmission), radius(r), type(inType), gammaBoost(inGamma) {}
+		float inRefl, float inRefract, float inIOR) {
+		pos = Vec3f(xPos, yPos, zPos);
+		color = Vec3f(cR, cG, cB);
+		radius = r;
+		refl = inRefl;
+		refract = inRefract;
+		IOR = inIOR;
+	}
+	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType) {
+		pos = inPos; 
+		color = inColor;
+		emissionColor = inEmission; 
+		radius = r; 
+		type = inType;
+	}
+	Sphere(Vec3f inPos, Vec3f inColor, Vec3f inEmission, float r, int inType, float inGamma) {
+		pos = inPos;
+		color = inColor;
+		emissionColor = inEmission;
+		radius = r;
+		type = inType;
+		gammaBoost = inGamma;
+	}
 
 
 	bool intersect(Vec3f rayOrigin, Vec3f rayDirection, float& p0, float& p1) {
@@ -85,6 +107,38 @@ struct Sphere {
 
 
 		}
+	}
+
+	Vec3f getNewDirectionTowardsLight(Vec3f shadowRay, Vec3f alignedNormal, Vec3f normalFromLight, float& angleToObject, Vec3f intersectionPoint) {
+		//build a coordinate space in the hemisphere of the shadowray light
+		Vec3f se1 = Vec3f(0);
+		if (fabs(alignedNormal.x) > fabs(alignedNormal.y)) {
+			se1 = Vec3f(shadowRay.z, 0, -shadowRay.x) / sqrt(shadowRay.x * shadowRay.x + shadowRay.z * shadowRay.z);
+		}
+		else {
+			se1 = Vec3f(0, -shadowRay.z, shadowRay.y) / sqrt(shadowRay.y * shadowRay.y + shadowRay.z * shadowRay.z);
+		}
+		se1.normalize();
+		Vec3f se2 = shadowRay.cross(se1);
+		se2.normalize();
+
+		//calculate a random direction towards light
+		angleToObject = sqrt(1 - radius * radius / normalFromLight.dot(normalFromLight));
+		float randX = (float)rand() / RAND_MAX; //get us a random point
+		float randomAngle2 = M_PI * 2 * ((float)rand() / RAND_MAX);
+		float angleCos = 1 - randX + randX * angleToObject;
+		float angleSin = sqrt(1 - angleCos * angleCos);
+		Vec3f newShadowRay = se1 * cos(randomAngle2) * angleSin + se2 * sin(randomAngle2) * angleSin + shadowRay * angleCos;
+		newShadowRay.normalize();
+
+		return newShadowRay;
+	}
+
+	Vec3f computeNormal(Vec3f intersectionPoint) {
+		return intersectionPoint - pos;
+	}
+	std::string toString() {
+		return "SPHERE";
 	}
 };
 

@@ -1,8 +1,10 @@
+#include <ostream>
 #ifndef VEC3F_H
 #define VEC3F_H
 
 
-struct Vec3f {
+class Vec3f {
+public:
 	float x;
 	float y;
 	float z;
@@ -17,6 +19,14 @@ struct Vec3f {
 		result.x = x + v.x;
 		result.y = y + v.y;
 		result.z = z + v.z;
+		return result;
+	}
+
+	Vec3f operator + (const float c) {
+		Vec3f result;
+		result.x = x + c;
+		result.y = y + c;
+		result.z = z + c;
 		return result;
 	}
 
@@ -51,6 +61,8 @@ struct Vec3f {
 		result.z = z / c;
 		return result;
 	}
+
+	friend std::ostream& operator<< (std::ostream& os, const Vec3f& v); 
 
 	float dot(Vec3f v) {
 		return (x * v.x) + (y * v.y) + (z * v.z);
@@ -96,6 +108,13 @@ struct Vec3f {
 	}
 
 };
+
+std::ostream& operator<<(std::ostream& os, const Vec3f& v) {
+
+	os << "[" << v.x << ", " << v.y << ", " << v.z << "]";
+	return os;
+
+}
 
 
 #endif
